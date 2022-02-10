@@ -10,7 +10,6 @@ android {
     defaultConfig {
         minSdk 21
         targetSdk 32
-        multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -42,6 +41,7 @@ dependencies {
     implementation "com.github.whoisjeeva.hiper:http:$hiper_version"
     implementation "com.github.whoisjeeva.hiper:util:$hiper_version"
 }
+
 
 // .\gradlew publishReleasePublicationToMavenLocal
 afterEvaluate {

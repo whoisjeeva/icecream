@@ -1,10 +1,10 @@
-package sh.fearless.lib.icecream
+package sh.fearless.icecream
 
 import org.json.JSONObject
 import sh.fearless.hiper.Hiper
-import sh.fearless.lib.icecream.model.Ringtone
-import sh.fearless.lib.icecream.model.Wallpaper
-import java.io.IOException
+import sh.fearless.icecream.model.Ringtone
+import sh.fearless.lib.icecream.RequestCaller
+import sh.fearless.icecream.model.Wallpaper
 import java.net.URLEncoder
 
 class Icecream {
@@ -30,7 +30,8 @@ class Icecream {
         val items = obj.getJSONArray("items")
         for (i in 0 until items.length()) {
             val item = items.getJSONObject(i)
-            ringtones.add(Ringtone(
+            ringtones.add(
+                Ringtone(
                 id = item.getString("id"),
                 imageUrl = item.getString("imageUrl"),
                 licensed = item.getBoolean("licensed"),
@@ -38,7 +39,8 @@ class Icecream {
                 audioUrl = item.getJSONObject("meta").getString("previewUrl"),
                 gradientStart = item.getJSONObject("meta").getString("gradientStart"),
                 gradientEnd = item.getJSONObject("meta").getString("gradientEnd")
-            ))
+            )
+            )
         }
         return ringtones
     }

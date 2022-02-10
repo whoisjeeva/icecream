@@ -1,4 +1,4 @@
-package sh.fearless.lib.icecream.model
+package sh.fearless.icecream.model
 
 data class Ringtone(
     val id: String,

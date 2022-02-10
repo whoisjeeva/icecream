@@ -1,8 +1,8 @@
-package sh.fearless.lib.icecream.model
+package sh.fearless.icecream.model
 
 import org.json.JSONObject
 import sh.fearless.hiper.Hiper
-import sh.fearless.lib.icecream.Icecream
+import sh.fearless.icecream.Icecream
 import sh.fearless.lib.icecream.RequestCaller
 
 data class Wallpaper(

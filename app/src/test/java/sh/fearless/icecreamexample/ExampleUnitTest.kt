@@ -1,4 +1,4 @@
-package sh.fearless.lib.icecream
+package sh.fearless.icecreamexample
 
 import org.junit.Test
 

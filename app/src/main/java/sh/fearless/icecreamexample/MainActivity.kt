@@ -1,4 +1,4 @@
-package sh.fearless.lib.icecream
+package sh.fearless.icecreamexample
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -14,7 +14,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import sh.fearless.lib.icecream.ui.theme.IcecreamExampleTheme
+import androidx.compose.ui.tooling.preview.Preview
+import sh.fearless.icecream.Icecream
+import sh.fearless.icecreamexample.ui.theme.IcecreamExampleTheme
+import sh.fearless.util.debug
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,6 +36,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 val icecream = Icecream()
 
 @Composable
@@ -43,7 +47,7 @@ fun App() {
         Button(onClick = {
             icecream.searchWallpapers("tamil", 1) { wallpapers, error ->
                 wallpapers[0].directUrl { url, e ->
-
+                    debug(url)
                 }
             }
         }) {

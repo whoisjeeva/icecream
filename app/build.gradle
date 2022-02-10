@@ -7,12 +7,11 @@ android {
     compileSdk 32
 
     defaultConfig {
-        applicationId "app.spidy.lib.icecream"
+        applicationId "sh.fearless.icecreamexample"
         minSdk 21
         targetSdk 32
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -60,7 +59,7 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
 
-
-    /* Hiper */
+    /* Icecream */
+    implementation "com.github.whoisjeeva.hiper:util:$hiper_version"
     implementation project(":icecream")
 }

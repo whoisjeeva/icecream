@@ -1,4 +1,4 @@
-package sh.fearless.lib.icecream.ui.theme
+package sh.fearless.icecreamexample.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
