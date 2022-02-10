@@ -41,3 +41,17 @@ dependencies {
     implementation "com.github.whoisjeeva.hiper:http:$hiper_version"
     implementation "com.github.whoisjeeva.hiper:util:$hiper_version"
 }
+
+// .\gradlew publishReleasePublicationToMavenLocal
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'sh.fearless.lib.icecream'
+                artifactId = "icecream"
+                version = '1.0.3'
+            }
+        }
+    }
+}
