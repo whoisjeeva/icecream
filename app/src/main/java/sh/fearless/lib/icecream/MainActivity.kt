@@ -14,10 +14,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.launch
 import sh.fearless.lib.icecream.ui.theme.IcecreamExampleTheme
-import sh.fearless.util.debug
-import sh.fearless.util.toast
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +43,7 @@ fun App() {
         Button(onClick = {
             icecream.searchWallpapers("tamil", 1) { wallpapers, error ->
                 wallpapers[0].directUrl { url, e ->
-                    debug(url)
+
                 }
             }
         }) {
