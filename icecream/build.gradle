@@ -51,7 +51,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'sh.fearless.lib.icecream'
                 artifactId = "icecream"
-                version = '1.0.3'
+                version = '2.0.1'
             }
         }
     }

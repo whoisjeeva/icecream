@@ -100,7 +100,7 @@ class Icecream {
 
     /* Wallpaper */
 
-    fun extractWallpapers(obj: JSONObject): List<Wallpaper> {
+    private fun extractWallpapers(obj: JSONObject): List<Wallpaper> {
         val wallpapers = ArrayList<Wallpaper>()
         val items = obj.getJSONArray("items")
         for (i in 0 until items.length()) {
