@@ -49,6 +49,7 @@ fun App() {
         Button(onClick = {
             icecream.searchRingtones("iron man", null) { ringtones, error, next ->
                 Log.d("hello", ringtones[0].toString())
+                Log.d("hello",next.toString())
 //                wallpapers[0].directUrl { url, e ->
 //                    debug(url)
 //                }

@@ -80,16 +80,14 @@ class Icecream {
     fun searchRingtones(query: String, next: String?, callback: (List<Ringtone>, error: String?, next: String?) -> Unit): RequestCaller? {
         try {
             val json = buildQuery(query, next)
-            Log.d("hello", json.toString())
             val queue = hiper.post(API_URL, json=json) {
-                Log.d("hello", "${it.isSuccessful}, ${it.text}, ${it.statusCode}, ${it.statusMessage}")
                 if (it.isSuccessful && it.text != null) {
                     var obj = JSONObject(it.text!!)
                     if (obj.has("errors")) {
                         callback.invoke(emptyList(), it.text!!, obj.getJSONObject("data").getJSONObject("browse_filteredList").getString("next"))
                     } else {
                         obj = obj.getJSONObject("data").getJSONObject("browse_filteredList")
-                        callback.invoke(extractRingtones(obj), null, null)
+                        callback.invoke(extractRingtones(obj), null, if (obj.has("next")) obj.getString("next") else null)
                     }
                 } else {
                     callback.invoke(emptyList(), "Request failed", null)
