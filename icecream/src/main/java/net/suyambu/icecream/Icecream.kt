@@ -1,14 +1,16 @@
 package net.suyambu.icecream
 
+import android.util.Log
 import org.json.JSONObject
 import net.suyambu.icecream.model.Ringtone
 import net.suyambu.icecream.model.Wallpaper
 import net.suyambu.hiper.http.Hiper
+import org.json.JSONArray
 import java.net.URLEncoder
 
 class Icecream {
     companion object {
-        const val API_URL = "https://api-gateway.zedge.net/"
+        const val API_URL = "https://www.zedge.net/api/graphql"
         @Volatile private var instance: Icecream? = null
 
         fun getInstance() = instance ?: synchronized(this) {
@@ -17,9 +19,6 @@ class Icecream {
     }
 
     private val hiper = Hiper.getInstance().async()
-    private val trendingQuery = "\n    query browse(\$input: BrowseAsUgcInput!) {\n      browseAsUgc(input: \$input) {\n        ...browseContentItemsResource\n      }\n    }\n    \n  fragment browseContentItemsResource on BrowseContentItems {\n    page\n    total\n    items {\n      ... on BrowseWallpaper {\n        id\n        contentType\n        title\n        tags\n        imageUrl\n        placeholderUrl\n        licensed\n      }\n\n      ... on BrowseRingtone {\n        id\n        contentType\n        title\n        tags\n        imageUrl\n        placeholderUrl\n        licensed\n        meta {\n          durationMs\n          previewUrl\n          gradientStart\n          gradientEnd\n        }\n      }\n    }\n  }\n\n  "
-    private val directUrlQuery = "\n    query contentDownloadUrl(\$itemId: ID!) {\n      contentDownloadUrlAsUgc(itemId: \$itemId)\n    }\n  "
-    private val searchQuery = "\n    query search(\$input: SearchAsUgcInput!) {\n      searchAsUgc(input: \$input) {\n        ...browseContentItemsResource\n      }\n    }\n    \n  fragment browseContentItemsResource on BrowseContentItems {\n    page\n    total\n    items {\n      ... on BrowseWallpaper {\n        id\n        contentType\n        title\n        tags\n        imageUrl\n        placeholderUrl\n        licensed\n      }\n\n      ... on BrowseRingtone {\n        id\n        contentType\n        title\n        tags\n        imageUrl\n        placeholderUrl\n        licensed\n        meta {\n          durationMs\n          previewUrl\n          gradientStart\n          gradientEnd\n        }\n      }\n    }\n  }\n\n  "
 
 
     /* Ringtone */
@@ -32,10 +31,10 @@ class Icecream {
             ringtones.add(
                 Ringtone(
                     id = item.getString("id"),
-                    imageUrl = item.getString("imageUrl"),
+                    imageUrl = item.getJSONObject("meta").getString("thumbUrl"),
                     licensed = item.getBoolean("licensed"),
                     title = item.getString("title"),
-                    audioUrl = item.getJSONObject("meta").getString("previewUrl"),
+                    audioUrl = item.getJSONObject("meta").getString("audioUrl"),
                     gradientStart = item.getJSONObject("meta").getString("gradientStart"),
                     gradientEnd = item.getJSONObject("meta").getString("gradientEnd")
                 )
@@ -44,130 +43,110 @@ class Icecream {
         return ringtones
     }
 
+    fun buildQuery(query: String, next: String? = null): JSONObject {
+        val jsonObject = JSONObject()
 
-    fun trendingRingtones(page: Int, callback: (List<Ringtone>, error: String?) -> Unit): RequestCaller? {
-        try {
-            val json = JSONObject("""
-            {"variables":{"input":{"contentType":"RINGTONE","page":$page,"size":24}}}
-        """.trimIndent())
-            json.put("query", trendingQuery)
-            val queue = hiper.post(API_URL, json=json) {
-                if (it.isSuccessful && it.text != null) {
-                    var obj = JSONObject(it.text!!)
-                    if (obj.has("errors")) {
-                        callback.invoke(emptyList(), it.text!!)
-                    } else {
-                        obj = obj.getJSONObject("data").getJSONObject("browseAsUgc")
-                        callback.invoke(extractRingtones(obj), null)
-                    }
-                } else {
-                    callback.invoke(emptyList(), "Request failed")
-                }
-            }
-            return RequestCaller(queue)
-        } catch (e: Exception) {
-            callback(emptyList(), e.toString())
+        jsonObject.put("query", "\n    query browse_filteredList(\$input: BrowseFilteredListFilterInput) {\n      browse_filteredList(input: \$input) {\n        ...browseFilteredListResource\n      }\n    }\n    \n  fragment browseFilteredListResource on BrowseContinuationItems {\n    items {\n      ...browseListItemResource\n\n      ... on BrowseProfileItem {\n        ...browseListProfileItemResource\n      }\n    }\n    next\n  }\n  \n  fragment browseListItemResource on BrowseItem {\n    ... on BrowseWallpaperItem {\n      id\n      licensed\n      title\n      type\n      paymentMethod {\n        type\n        price\n      }\n      meta {\n        previewUrl\n        microThumb\n        thumbUrl\n      }\n      profile {\n        id\n        name\n        avatarIconUrl\n        verified\n      }\n    }\n\n    ... on BrowseRingtoneItem {\n      id\n      licensed\n      title\n      type\n      paymentMethod {\n        type\n        price\n      }\n      meta {\n        audioUrl\n        duration\n        gradientStart\n        gradientEnd\n        thumbUrl\n      }\n      profile {\n        id\n        name\n        avatarIconUrl\n        verified\n      }\n    }\n\n    ... on BrowseNotificationSoundItem {\n      id\n      licensed\n      title\n      type\n      paymentMethod {\n        type\n        price\n      }\n      meta {\n        audioUrl\n        duration\n        gradientStart\n        gradientEnd\n        thumbUrl\n      }\n      profile {\n        id\n        name\n        avatarIconUrl\n        verified\n      }\n    }\n\n    ... on BrowseLiveWallpaperItem {\n      id\n      licensed\n      title\n      type\n      paymentMethod {\n        type\n        price\n      }\n      meta {\n        previewUrl\n        thumbUrl\n      }\n      profile {\n        id\n        name\n        avatarIconUrl\n        verified\n      }\n    }\n  }\n\n  \n  fragment browseListProfileItemResource on BrowseProfileItem {\n    id\n    type\n    avatarUrl\n    verified\n    name\n    shareUrl\n  }\n\n\n  ")
+        jsonObject.put("operationName", "browse_filteredList")
+
+        val variables = JSONObject()
+        val input = JSONObject()
+
+        input.put("itemType", "RINGTONE")
+        input.put("categories", JSONArray())
+        input.put("colors", JSONArray())
+        input.put("sort", "RELEVANT")
+        input.put("keywords", JSONArray(listOf(query)))
+        input.put("maxPrice", JSONObject.NULL)
+        input.put("minPrice", JSONObject.NULL)
+        input.put("minDurationMs", JSONObject.NULL)
+        input.put("maxDurationMs", JSONObject.NULL)
+        input.put("profileType", "ANY")
+        input.put("size", 24)
+
+        // Set the next value if provided
+        if (next != null) {
+            input.put("next", next)
+        } else {
+            input.put("next", JSONObject.NULL)
         }
-        return null
+
+        variables.put("input", input)
+        jsonObject.put("variables", variables)
+
+        return jsonObject
     }
 
-    fun searchRingtones(query: String, page: Int, callback: (List<Ringtone>, error: String?) -> Unit): RequestCaller? {
+    fun searchRingtones(query: String, next: String?, callback: (List<Ringtone>, error: String?, next: String?) -> Unit): RequestCaller? {
         try {
-            val json = JSONObject("""
-            {"variables":{"input":{"contentType":"RINGTONE","keyword":"${URLEncoder.encode(query.replace("\"", ""), "UTF-8")}","page":$page,"size":24}}}
-        """.trimIndent())
-            json.put("query", searchQuery)
+            val json = buildQuery(query, next)
+            Log.d("hello", json.toString())
             val queue = hiper.post(API_URL, json=json) {
+                Log.d("hello", "${it.isSuccessful}, ${it.text}, ${it.statusCode}, ${it.statusMessage}")
                 if (it.isSuccessful && it.text != null) {
                     var obj = JSONObject(it.text!!)
                     if (obj.has("errors")) {
-                        callback.invoke(emptyList(), it.text!!)
+                        callback.invoke(emptyList(), it.text!!, obj.getJSONObject("data").getJSONObject("browse_filteredList").getString("next"))
                     } else {
-                        obj = obj.getJSONObject("data").getJSONObject("searchAsUgc")
-                        callback.invoke(extractRingtones(obj), null)
+                        obj = obj.getJSONObject("data").getJSONObject("browse_filteredList")
+                        callback.invoke(extractRingtones(obj), null, null)
                     }
                 } else {
-                    callback.invoke(emptyList(), "Request failed")
+                    callback.invoke(emptyList(), "Request failed", null)
                 }
             }
             return RequestCaller(queue)
         } catch (e: Exception) {
-            callback(emptyList(), e.toString())
+            callback(emptyList(), e.toString(), null)
         }
         return null
     }
 
     /* Wallpaper */
-    private fun extractWallpapers(obj: JSONObject): List<Wallpaper> {
-        val wallpapers = ArrayList<Wallpaper>()
-        val items = obj.getJSONArray("items")
-        for (i in 0 until items.length()) {
-            val item = items.getJSONObject(i)
-            val isLicensed = item.getBoolean("licensed")
-            if (!isLicensed) {
-                wallpapers.add(
-                    Wallpaper(
-                        id = item.getString("id"),
-                        imageUrl = item.getString("imageUrl"),
-                        licensed = item.getBoolean("licensed"),
-                        title = item.getString("title")
-                    )
-                )
-            }
-        }
-        return wallpapers
-    }
-
-
-    fun trendingWallpapers(page: Int, callback: (List<Wallpaper>, error: String?) -> Unit): RequestCaller? {
-        try {
-            val json = JSONObject("""
-            {"variables":{"input":{"contentType":"WALLPAPER","page":$page,"size":24}}}
-        """.trimIndent())
-            json.put("query", trendingQuery)
-            val queue = hiper.post(API_URL, json=json) {
-                if (it.isSuccessful && it.text != null) {
-                    var obj = JSONObject(it.text!!)
-                    if (obj.has("errors")) {
-                        callback.invoke(emptyList(), it.text!!)
-                    } else {
-                        obj = obj.getJSONObject("data").getJSONObject("browseAsUgc")
-                        callback.invoke(extractWallpapers(obj), null)
-                    }
-                } else {
-                    callback.invoke(emptyList(), "Request failed")
-                }
-            }
-            return RequestCaller(queue)
-        } catch (e: Exception) {
-            callback(emptyList(), e.toString())
-        }
-        return null
-    }
-
-    fun searchWallpapers(query: String, page: Int, callback: (List<Wallpaper>, error: String?) -> Unit): RequestCaller? {
-        try {
-            val json = JSONObject("""
-            {"variables":{"input":{"contentType":"WALLPAPER","keyword":"${URLEncoder.encode(query.replace("\"", ""), "UTF-8")}","page":$page,"size":24}}}
-        """.trimIndent())
-            json.put("query", searchQuery)
-            val queue = hiper.post(API_URL, json=json) {
-                if (it.isSuccessful && it.text != null) {
-                    var obj = JSONObject(it.text!!)
-                    if (obj.has("errors")) {
-                        callback.invoke(emptyList(), it.text!!)
-                    } else {
-                        obj = obj.getJSONObject("data").getJSONObject("searchAsUgc")
-                        callback.invoke(extractWallpapers(obj), null)
-                    }
-                } else {
-                    callback.invoke(emptyList(), "Request failed")
-                }
-            }
-            return RequestCaller(queue)
-        } catch (e: Exception) {
-            callback(emptyList(), e.toString())
-        }
-        return null
-    }
+//    private fun extractWallpapers(obj: JSONObject): List<Wallpaper> {
+//        val wallpapers = ArrayList<Wallpaper>()
+//        val items = obj.getJSONArray("items")
+//        for (i in 0 until items.length()) {
+//            val item = items.getJSONObject(i)
+//            val isLicensed = item.getBoolean("licensed")
+//            if (!isLicensed) {
+//                wallpapers.add(
+//                    Wallpaper(
+//                        id = item.getString("id"),
+//                        imageUrl = item.getString("imageUrl"),
+//                        licensed = item.getBoolean("licensed"),
+//                        title = item.getString("title")
+//                    )
+//                )
+//            }
+//        }
+//        return wallpapers
+//    }
+//
+//
+//    fun searchWallpapers(query: String, page: Int, callback: (List<Wallpaper>, error: String?) -> Unit): RequestCaller? {
+//        try {
+//            val json = JSONObject("""
+//            {"variables":{"input":{"contentType":"WALLPAPER","keyword":"${URLEncoder.encode(query.replace("\"", ""), "UTF-8")}","page":$page,"size":24}}}
+//        """.trimIndent())
+//            json.put("query", searchQuery)
+//            val queue = hiper.post(API_URL, json=json) {
+//                if (it.isSuccessful && it.text != null) {
+//                    var obj = JSONObject(it.text!!)
+//                    if (obj.has("errors")) {
+//                        callback.invoke(emptyList(), it.text!!)
+//                    } else {
+//                        obj = obj.getJSONObject("data").getJSONObject("searchAsUgc")
+//                        callback.invoke(extractWallpapers(obj), null)
+//                    }
+//                } else {
+//                    callback.invoke(emptyList(), "Request failed")
+//                }
+//            }
+//            return RequestCaller(queue)
+//        } catch (e: Exception) {
+//            callback(emptyList(), e.toString())
+//        }
+//        return null
+//    }
 }

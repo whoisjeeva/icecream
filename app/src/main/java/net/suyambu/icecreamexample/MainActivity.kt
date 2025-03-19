@@ -47,16 +47,11 @@ fun App() {
     val scope = rememberCoroutineScope()
     Box(contentAlignment = Alignment.Center) {
         Button(onClick = {
-//            icecream.searchWallpapers("iron man", 1) { wallpapers, error ->
-//                Log.d("hello", wallpapers[0].toString())
-//                Log.d("hello", wallpapers[1].toString())
-////                wallpapers[0].directUrl { url, e ->
-////                    debug(url)
-////                }
-//            }
-            kulfy.searchGifs(1, "varisu", listOf("all")) { gifs, error ->
-                Log.d("hello", gifs[0].toString())
-                Log.d("hello", gifs[1].toString())
+            icecream.searchRingtones("iron man", null) { ringtones, error, next ->
+                Log.d("hello", ringtones[0].toString())
+//                wallpapers[0].directUrl { url, e ->
+//                    debug(url)
+//                }
             }
         }) {
             Text(text = "Go!")
